@@ -69,6 +69,6 @@ def main
 end
 
 binding.pry
-ActiveRecordSetup.run
+SqliteSetupActiveRecord.setup
 main
 # fetch_search_api(name: '鳥貴族', shop_id: 100, db_address: 'tokyo' )
