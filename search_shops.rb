@@ -6,9 +6,13 @@ require 'json'
 require 'uri'
 require 'openssl'
 require 'pry'
+require 'active_record'
+require './active_record_setup.rb'
+
 KEY = "?key=#{ENV['ACCESS_KEY']}&format=json"
 BASE_URL = 'http://webservice.recruit.co.jp/hotpepper/gourmet/v1'
-def fetch_search_api(name:, shop_id:, db_address: )
+
+def fetch_search_api(name:, shop_id:, db_address:)
 #  binding.pry if db_address == '東京都小金井市東町４-４２-１９'
   params_name = '&name=' + convert_name(name)
   params_address = '&address=' + convert_address(db_address)
@@ -32,49 +36,17 @@ def fetch_search_api(name:, shop_id:, db_address: )
     results = res['results']
     results_available = results['results_available'].to_i
     if results_available.zero?
-      write_shop0_csv_file(shop_id: shop_id, name: name, db_address: db_address, api_address: nil, params_name: params_name, params_address: params_address)
+      Response0.find_or_create_by(shop_id: shop_id, db_name: name, db_address: db_address, api_address: nil, params_name: params_name, params_address: params_address)
     elsif results['results_available'] == 1
-      write_shop1_csv_file(shop_id: shop_id, name: name, db_address: db_address, api_address: results['shop'][0]['address'],api_shop_name: results['shop'][0]['name'], urls: results['shop'][0]['urls']['pc'], params_name: params_name, params_address: params_address)
+      Response1.find_or_create_by(shop_id: shop_id, db_name: name, db_address: db_address, api_address: results['shop'][0]['address'], api_shop_name: results['shop'][0]['name'], urls: results['shop'][0]['urls']['pc'], params_name: params_name, params_address: params_address)
     else
-      puts "aa"
-      write_shop_over_2_csv_file(shop_id: shop_id, name: name, db_address: db_address, shops: results['shop'], params_name: params_name, params_address: params_address)
+      results['shop'].each do |shop|
+        ResponseOver2.find_or_create_by(shop_id: shop_id, db_name: name, db_address: db_address, api_name: shop[:name],api_address: shop['address'], api_url: shop['urls']['pc'], params_name: params_name, params_address: params_address)
+      end
     end
   rescue => e
     puts e
     return nil
-  end
-end
-
-def write_shop0_csv_file(shop_id:, name:, db_address:, api_address:, urls: nil, params_name:, params_address:)
-  csv_file_path = 'csvs/shop0.csv'
-  CSV.open(csv_file_path, 'a+') do |csv_file|
-    row = %W(shop_id name db_address api_address url)
-    row = %W(#{shop_id} #{name} #{db_address} #{api_address} #{urls} #{params_name} #{params_address})
-    puts 'shop0'
-    puts row
-    csv_file << row
-  end
-end
-
-def write_shop1_csv_file(shop_id:, name:, db_address:, api_address:, urls:, api_shop_name:, params_name:, params_address:)
-  csv_file_path = 'csvs/shop1.csv'
-  CSV.open(csv_file_path, 'a+') do |csv_file|
-    row = %W(#{shop_id} #{name} #{db_address} #{api_shop_name} #{api_address} #{urls} #{params_name} #{params_address})
-    puts 'shop1'
-    puts row
-    csv_file << row
-  end
-end
-
-def write_shop_over_2_csv_file(shop_id:, name:, db_address:, shops:, params_name:, params_address:)
-  csv_file_path = 'csvs/shop_over_2.csv'
-  CSV.open(csv_file_path, 'a+') do |csv_file|
-    shops.each do |shop|
-      row = %W(#{shop_id} #{name} #{db_address} #{shop['name']} #{shop['address']} #{params_name} #{params_address})
-      puts 'shop2'
-      puts row
-      csv_file << row
-    end
   end
 end
 
@@ -84,10 +56,11 @@ end
 
 def convert_address(str)
   str.sub!(/\s.*/, '')
-  str.tr('０-９ａ-ｚＡ-Ｚ', '0-9a-zA-Z')
+  str.tr('０-９ａ-ｚＡ-Ｚ', '0-9a-zA-Z').match(/.*(-\d)/).to_s
 end
 
 def main
+  set_up
   target_shops_csv_path = 'check_ins_shops.csv'
   CSV.foreach(target_shops_csv_path, headers: true) do |shop|
     puts shop
@@ -95,5 +68,7 @@ def main
   end
 end
 
+binding.pry
+ActiveRecordSetup.run
 main
 # fetch_search_api(name: '鳥貴族', shop_id: 100, db_address: 'tokyo' )
