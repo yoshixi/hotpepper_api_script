@@ -1,3 +1,4 @@
 .envrc
 csvs/*
 check_ins_shops.csv
+/vendor/*
