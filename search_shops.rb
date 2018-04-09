@@ -45,15 +45,15 @@ def fetch_search_api(name:, shop_id:, db_address:)
       end
     elsif results['results_available'] == 1
       puts '1'
-      if ResponseZeroShop.where(shop_id: shop_id, db_name: name, db_address: db_address, api_address: results['shop'][0]['address'], api_shop_name: results['shop'][0]['name'], urls: results['shop'][0]['urls']['pc']).blank?
-        ResponseOneShop.find_or_create_by(shop_id: shop_id, db_name: name, db_address: db_address, api_address: results['shop'][0]['address'], api_shop_name: results['shop'][0]['name'], urls: results['shop'][0]['urls']['pc'], params_name: params_name, params_address: params_address)
+      if ResponseOneShop.where(shop_id: shop_id, db_name: name, db_address: db_address, api_address: results['shop'][0]['address'], api_name: results['shop'][0]['name'], api_urls: results['shop'][0]['urls']['pc']).blank?
+        ResponseOneShop.create(shop_id: shop_id, db_name: name, db_address: db_address, api_address: results['shop'][0]['address'], api_name: results['shop'][0]['name'], api_urls: results['shop'][0]['urls']['pc'], params_name: params_name, params_address: params_address)
       else
         puts 'aleady exist'
       end
     else
       puts 'over2'
       results['shop'].each do |shop|
-        ResponseOverTwoShop.find_or_create_by(shop_id: shop_id, db_name: name, db_address: db_address, api_name: shop[:name],api_address: shop['address'], api_url: shop['urls']['pc'], params_name: params_name, params_address: params_address)
+        ResponseOverTwoShop.find_or_create_by(shop_id: shop_id, db_name: name, db_address: db_address, api_name: shop[:name],api_address: shop['address'], api_urls: shop['urls']['pc'], params_name: params_name, params_address: params_address)
       end
     end
   rescue => e

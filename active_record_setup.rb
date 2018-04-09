@@ -7,7 +7,7 @@ module Sqlite
 
       ActiveRecord::Base.establish_connection(
         adapter: 'sqlite3',
-        database: __dir__ + '/db/sample.sqlite3'
+        database: __dir__ + '/db/hotpepper.sqlite3'
       )
       ActiveRecord::Schema.define do
         unless ActiveRecord::Base.connection.table_exists?(:response_zero_shops)

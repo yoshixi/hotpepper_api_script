@@ -3,3 +3,4 @@ csvs/*
 check_ins_shops.csv
 /vendor/*
 .bundle/*
+/db/*
