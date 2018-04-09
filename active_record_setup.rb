@@ -26,7 +26,8 @@ module Sqlite
             table.column :db_address,  :string
             table.column :api_address, :string
             table.column :api_name, :string
-            table.column :api_urls,    :string
+            table.column :api_url,    :string
+            table.column :affiliate_url,    :string
             table.column :params_name,    :string
             table.column :params_address, :string
           end
@@ -39,7 +40,8 @@ module Sqlite
             table.column :db_address,  :string
             table.column :api_address, :string
             table.column :api_name, :string
-            table.column :api_urls,    :string
+            table.column :api_url,    :string
+            table.column :affiliate_url,    :string
             table.column :params_name,    :string
             table.column :params_address, :string
           end
