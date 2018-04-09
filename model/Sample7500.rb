@@ -1,0 +1,1 @@
+class Sample7500 < ActiveRecord::Base; end

@@ -9,4 +9,4 @@ gem 'pry'
 gem 'csv'
 gem 'activerecord'
 gem 'sqlite3'
-
+gem 'pry-byebug'

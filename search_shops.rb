@@ -7,6 +7,7 @@ require 'uri'
 require 'openssl'
 require 'pry'
 require 'active_record'
+require 'pry-byebug'
 require './active_record_setup.rb'
 
 KEY = "?key=#{ENV['ACCESS_KEY']}&format=json"
@@ -36,12 +37,12 @@ def fetch_search_api(name:, shop_id:, db_address:)
     results = res['results']
     results_available = results['results_available'].to_i
     if results_available.zero?
-      Response0.find_or_create_by(shop_id: shop_id, db_name: name, db_address: db_address, api_address: nil, params_name: params_name, params_address: params_address)
+      ResponseZeroShop.find_or_create_by(shop_id: shop_id, db_name: name, db_address: db_address, api_address: nil, params_name: params_name, params_address: params_address)
     elsif results['results_available'] == 1
-      Response1.find_or_create_by(shop_id: shop_id, db_name: name, db_address: db_address, api_address: results['shop'][0]['address'], api_shop_name: results['shop'][0]['name'], urls: results['shop'][0]['urls']['pc'], params_name: params_name, params_address: params_address)
+      ResponseOneShop.find_or_create_by(shop_id: shop_id, db_name: name, db_address: db_address, api_address: results['shop'][0]['address'], api_shop_name: results['shop'][0]['name'], urls: results['shop'][0]['urls']['pc'], params_name: params_name, params_address: params_address)
     else
       results['shop'].each do |shop|
-        ResponseOver2.find_or_create_by(shop_id: shop_id, db_name: name, db_address: db_address, api_name: shop[:name],api_address: shop['address'], api_url: shop['urls']['pc'], params_name: params_name, params_address: params_address)
+        ResponseOverTwoShop.find_or_create_by(shop_id: shop_id, db_name: name, db_address: db_address, api_name: shop[:name],api_address: shop['address'], api_url: shop['urls']['pc'], params_name: params_name, params_address: params_address)
       end
     end
   rescue => e
@@ -68,7 +69,6 @@ def main
   end
 end
 
-binding.pry
-SqliteSetupActiveRecord.setup
+Sqlite::Orm.setup
 main
 # fetch_search_api(name: '鳥貴族', shop_id: 100, db_address: 'tokyo' )
