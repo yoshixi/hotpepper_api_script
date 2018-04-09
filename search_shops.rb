@@ -18,16 +18,16 @@ def fetch_search_api(name:, shop_id:, db_address:)
   params_name = '&name=' + convert_name(name)
   params_address = '&address=' + convert_address(db_address)
   puts '======================================================'
+  puts params_name
   puts params_address
   url = BASE_URL + KEY + params_name + params_address
   url = URI.parse URI.encode url
-  puts url
   req = Net::HTTP::Get.new(url.request_uri)
 
   http = Net::HTTP.new(url.host, url.port)
  # http.use_ssl = true
   # http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-  http.set_debug_output $stderr
+  # http.set_debug_output $stderr
   res = ''
   begin
     http.start do |h|
@@ -37,10 +37,21 @@ def fetch_search_api(name:, shop_id:, db_address:)
     results = res['results']
     results_available = results['results_available'].to_i
     if results_available.zero?
-      ResponseZeroShop.find_or_create_by(shop_id: shop_id, db_name: name, db_address: db_address, api_address: nil, params_name: params_name, params_address: params_address)
+      puts '0'
+      if ResponseZeroShop.where(params_name: params_name, params_address: params_address).blank?
+        ResponseZeroShop.create(shop_id: shop_id, db_name: name, db_address: db_address, params_name: params_name, params_address: params_address)
+      else
+        puts 'aleady exist'
+      end
     elsif results['results_available'] == 1
-      ResponseOneShop.find_or_create_by(shop_id: shop_id, db_name: name, db_address: db_address, api_address: results['shop'][0]['address'], api_shop_name: results['shop'][0]['name'], urls: results['shop'][0]['urls']['pc'], params_name: params_name, params_address: params_address)
+      puts '1'
+      if ResponseZeroShop.where(shop_id: shop_id, db_name: name, db_address: db_address, api_address: results['shop'][0]['address'], api_shop_name: results['shop'][0]['name'], urls: results['shop'][0]['urls']['pc']).blank?
+        ResponseOneShop.find_or_create_by(shop_id: shop_id, db_name: name, db_address: db_address, api_address: results['shop'][0]['address'], api_shop_name: results['shop'][0]['name'], urls: results['shop'][0]['urls']['pc'], params_name: params_name, params_address: params_address)
+      else
+        puts 'aleady exist'
+      end
     else
+      puts 'over2'
       results['shop'].each do |shop|
         ResponseOverTwoShop.find_or_create_by(shop_id: shop_id, db_name: name, db_address: db_address, api_name: shop[:name],api_address: shop['address'], api_url: shop['urls']['pc'], params_name: params_name, params_address: params_address)
       end
@@ -61,7 +72,6 @@ def convert_address(str)
 end
 
 def main
-  set_up
   target_shops_csv_path = 'check_ins_shops.csv'
   CSV.foreach(target_shops_csv_path, headers: true) do |shop|
     puts shop
